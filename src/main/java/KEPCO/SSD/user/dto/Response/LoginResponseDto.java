@@ -1,4 +1,4 @@
-package KEPCO.SSD.dto;
+package KEPCO.SSD.user.dto.Response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -33,10 +33,10 @@ dependencies {
 	implementation 'org.glassfish:jakarta.el:3.0.3'
 	compileOnly 'org.projectlombok:lombok:1.18.24'
 	runtimeOnly 'com.mysql:mysql-connector-j'
-	implementation 'com.twilio.sdk:twilio:8.32.0'
 	annotationProcessor 'org.projectlombok:lombok:1.18.24'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'com.twilio.sdk:twilio:8.32.0'
 	compileOnly 'javax.servlet:javax.servlet-api:4.0.1'
 }
 

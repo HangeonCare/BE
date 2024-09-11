@@ -1,6 +1,6 @@
-package KEPCO.SSD.repository;
+package KEPCO.SSD.user.repository;
 
-import KEPCO.SSD.entity.User;
+import KEPCO.SSD.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

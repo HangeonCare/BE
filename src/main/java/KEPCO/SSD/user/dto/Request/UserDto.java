@@ -1,4 +1,4 @@
-package KEPCO.SSD.dto;
+package KEPCO.SSD.user.dto.Request;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

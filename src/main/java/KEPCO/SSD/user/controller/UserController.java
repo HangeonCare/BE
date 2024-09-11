@@ -1,11 +1,11 @@
-package KEPCO.SSD.controller;
+package KEPCO.SSD.user.controller;
 
-import KEPCO.SSD.dto.LoginRequestDto;
-import KEPCO.SSD.dto.SignupResponseDto;
-import KEPCO.SSD.dto.LoginResponseDto;
-import KEPCO.SSD.dto.UserDto;
-import KEPCO.SSD.entity.User;
-import KEPCO.SSD.service.UserService;
+import KEPCO.SSD.user.dto.Request.LoginRequestDto;
+import KEPCO.SSD.user.dto.Response.SignupResponseDto;
+import KEPCO.SSD.user.dto.Response.LoginResponseDto;
+import KEPCO.SSD.user.dto.Request.UserDto;
+import KEPCO.SSD.user.entity.User;
+import KEPCO.SSD.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package KEPCO.SSD.entity;
+package KEPCO.SSD.user.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

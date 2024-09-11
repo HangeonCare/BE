@@ -1,10 +1,10 @@
-package KEPCO.SSD.service;
+package KEPCO.SSD.user.service;
 
-import KEPCO.SSD.dto.LoginRequestDto;
-import KEPCO.SSD.dto.SignupResponseDto;
-import KEPCO.SSD.dto.UserDto;
-import KEPCO.SSD.entity.User;
-import KEPCO.SSD.repository.UserRepository;
+import KEPCO.SSD.user.dto.Request.LoginRequestDto;
+import KEPCO.SSD.user.dto.Response.SignupResponseDto;
+import KEPCO.SSD.user.dto.Request.UserDto;
+import KEPCO.SSD.user.entity.User;
+import KEPCO.SSD.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
