@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-import javax.servlet.http.HttpServletRequest;
 
 @Service
 @Validated
@@ -50,25 +49,5 @@ public class UserService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
         return user;
-    }
-
-    // 회원 탈퇴
-    public void signOut(LoginRequestDto signOutLoginRequestDto) {
-        String phoneNumber = signOutLoginRequestDto.getPhoneNumber();
-        String password = signOutLoginRequestDto.getPassword();
-
-        User user = userRepository.findByPhoneNumber(phoneNumber)
-                .orElseThrow(() -> new IllegalArgumentException("전화번호가 일치하지 않습니다."));
-
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-        }
-
-        userRepository.deleteById(user.getUserId());
-    }
-
-    // 로그아웃
-    public void logout(HttpServletRequest request) {
-        request.getSession().invalidate();
     }
 }

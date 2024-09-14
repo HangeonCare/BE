@@ -32,12 +32,11 @@ dependencies {
 	implementation 'org.hibernate.validator:hibernate-validator:7.0.1.Final'
 	implementation 'org.glassfish:jakarta.el:3.0.3'
 	compileOnly 'org.projectlombok:lombok:1.18.24'
-	runtimeOnly 'com.mysql:mysql-connector-j'
+	runtimeOnly 'com.mysql:mysql-connector-j:8.0.33'
 	annotationProcessor 'org.projectlombok:lombok:1.18.24'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'com.twilio.sdk:twilio:8.32.0'
-	compileOnly 'javax.servlet:javax.servlet-api:4.0.1'
 }
 
 tasks.named('test') {

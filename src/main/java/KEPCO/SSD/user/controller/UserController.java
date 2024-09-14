@@ -43,20 +43,9 @@ public class UserController {
             return new ResponseEntity<>(new LoginResponseDto(-1, e.getMessage()), HttpStatus.UNAUTHORIZED);
         }
     }
-
-    @PostMapping("/signout")
-    public ResponseEntity<SignupResponseDto> signOut(@RequestBody @Valid LoginRequestDto request) {
-        try {
-            userService.signOut(request);
-            return new ResponseEntity<>(new SignupResponseDto("회원탈퇴 완료", null), HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(new SignupResponseDto(e.getMessage(), null), HttpStatus.BAD_REQUEST);
-        }
-    }
-
     @PostMapping("/logout")
     public ResponseEntity<String> logout(HttpServletRequest request) {
         request.getSession().invalidate();
-        return new ResponseEntity<>("로그아웃 성공. 클라이언트 측에서 토큰을 삭제하세요.", HttpStatus.OK);
+        return new ResponseEntity<>("로그아웃 완료", HttpStatus.OK);
     }
 }
