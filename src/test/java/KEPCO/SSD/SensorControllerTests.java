@@ -1,5 +1,5 @@
 package KEPCO.SSD;
-import KEPCO.SSD.device.raspberrypi.controller.SensorController;
+import KEPCO.SSD.sensor.controller.SensorController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

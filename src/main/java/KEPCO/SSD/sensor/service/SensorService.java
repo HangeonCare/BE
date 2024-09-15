@@ -1,6 +1,6 @@
-package KEPCO.SSD.device.raspberrypi.service;
+package KEPCO.SSD.sensor.service;
 
-import KEPCO.SSD.device.raspberrypi.dto.SensorRequestDto;
+import KEPCO.SSD.sensor.dto.SensorRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package KEPCO.SSD.device.raspberrypi.dto;
+package KEPCO.SSD.sensor.dto;
 
 import lombok.Data;
 
