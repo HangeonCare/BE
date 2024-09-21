@@ -18,10 +18,10 @@ public class SensorController {
 
     @PostMapping("/sensors")
     public ResponseEntity<SensorResponseDto> handleSensorData(
-            @PathVariable int userId,
+            @PathVariable long userId,
             @RequestBody SensorRequestDto sensorRequestDto) {
 
-        sensorService.processSensorData(userId, sensorRequestDto);
+        sensorService.processSensorData((int) userId, sensorRequestDto);
 
         SensorResponseDto responseDto = new SensorResponseDto("감지 완료", sensorRequestDto.getSerialNumber());
         return new ResponseEntity<>(responseDto, HttpStatus.OK);

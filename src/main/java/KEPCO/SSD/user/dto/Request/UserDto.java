@@ -10,5 +10,5 @@ import lombok.AllArgsConstructor;
 public class UserDto {
     private String phoneNumber;
     private String password;
-    private int userId;
+    private long userId;
 }

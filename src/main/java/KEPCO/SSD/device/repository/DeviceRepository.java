@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface DeviceRepository extends JpaRepository<Device, String> {
-    List<Device> findByUserId(Long userId);
-    Optional<Device> findByUserIdAndSerialNumber(Long userId, String serialNumber);
-    void deleteByUserIdAndSerialNumber(Long userId, String serialNumber);
+    List<Device> findByUserId(int userId); // int로 변경
+    Optional<Device> findByUserIdAndSerialNumber(int userId, String serialNumber); // int로 변경
+    void deleteByUserIdAndSerialNumber(int userId, String serialNumber); // int로 변경
 }

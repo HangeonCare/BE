@@ -27,21 +27,21 @@ public class DeviceService {
     }
 
     public DeviceResponseDto deleteDevice(Long userId, String serialNumber) {
-        Device device = deviceRepository.findByUserIdAndSerialNumber(userId, serialNumber)
+        Device device = deviceRepository.findByUserIdAndSerialNumber(Math.toIntExact(userId), serialNumber)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
         deviceRepository.delete(device);
         return new DeviceResponseDto("기기 삭제 완료", serialNumber);
     }
 
     public List<DeviceResponseDto> getDevices(Long userId) {
-        return deviceRepository.findByUserId(userId)
+        return deviceRepository.findByUserId(Math.toIntExact(userId))
                 .stream()
                 .map(device -> new DeviceResponseDto("기기 조회 완료", device.getSerialNumber()))
                 .collect(Collectors.toList());
     }
 
     public DeviceResponseDto setPeriod(Long userId, String serialNumber, String period) {
-        Device device = deviceRepository.findByUserIdAndSerialNumber(userId, serialNumber)
+        Device device = deviceRepository.findByUserIdAndSerialNumber(Math.toIntExact(userId), serialNumber)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
         device.setPeriod(period);
         deviceRepository.save(device);
