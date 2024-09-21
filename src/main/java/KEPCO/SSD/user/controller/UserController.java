@@ -1,9 +1,10 @@
 package KEPCO.SSD.user.controller;
 
+import KEPCO.SSD.user.dto.Request.SignupRequestDto;
 import KEPCO.SSD.user.dto.Request.LoginRequestDto;
+import KEPCO.SSD.user.dto.Request.SendCodeRequestDto;
 import KEPCO.SSD.user.dto.Response.SignupResponseDto;
 import KEPCO.SSD.user.dto.Response.LoginResponseDto;
-import KEPCO.SSD.user.dto.Request.UserDto;
 import KEPCO.SSD.user.entity.User;
 import KEPCO.SSD.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,9 +24,16 @@ public class UserController {
         this.userService = userService;
     }
 
+    @PostMapping("/send_code")
+    public ResponseEntity<String> sendCode(@RequestBody @Valid SendCodeRequestDto request) {
+        userService.sendVerificationCode(request.getPhoneNumber());
+        return ResponseEntity.ok("인증메세지 발송");
+    }
+
     @PostMapping("/signup")
-    public ResponseEntity<SignupResponseDto> signup(@RequestBody @Valid UserDto request) {
+    public ResponseEntity<SignupResponseDto> signup(@RequestBody @Valid SignupRequestDto request) {
         try {
+            userService.verifyCode(request.getPhoneNumber(), request.getVerificationCode());
             userService.signup(request);
             return new ResponseEntity<>(new SignupResponseDto("회원가입 완료", request.getPhoneNumber()), HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
