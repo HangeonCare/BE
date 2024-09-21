@@ -7,6 +7,7 @@ import KEPCO.SSD.device.repository.DeviceRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.NoSuchElementException;
 
@@ -26,10 +27,8 @@ public class DeviceService {
     }
 
     public DeviceResponseDto deleteDevice(Long userId, String serialNumber) {
-        Device device = deviceRepository.findByUserIdAndSerialNumber(userId, serialNumber);
-        if (device == null) {
-            throw new NoSuchElementException("존재하지 않는 기기입니다.");
-        }
+        Device device = deviceRepository.findByUserIdAndSerialNumber(userId, serialNumber)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
         deviceRepository.delete(device);
         return new DeviceResponseDto("기기 삭제 완료", serialNumber);
     }
@@ -42,10 +41,8 @@ public class DeviceService {
     }
 
     public DeviceResponseDto setPeriod(Long userId, String serialNumber, String period) {
-        Device device = deviceRepository.findByUserIdAndSerialNumber(userId, serialNumber);
-        if (device == null) {
-            throw new NoSuchElementException("존재하지 않는 기기입니다.");
-        }
+        Device device = deviceRepository.findByUserIdAndSerialNumber(userId, serialNumber)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
         device.setPeriod(period);
         deviceRepository.save(device);
         return new DeviceResponseDto("기간 설정 완료", serialNumber);

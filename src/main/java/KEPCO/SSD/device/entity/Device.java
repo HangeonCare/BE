@@ -1,26 +1,23 @@
 package KEPCO.SSD.device.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import jakarta.persistence.*;
 import lombok.Data;
-import jakarta.persistence.Id;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@NoArgsConstructor
+@Table(name = "devices")
 public class Device {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private Long userId;
+    @Column(name = "serial_number")
     private String serialNumber;
+    private Long userId;
     private String period;
 
     public Device(Long userId, String serialNumber) {
         this.userId = userId;
         this.serialNumber = serialNumber;
     }
-
 }
