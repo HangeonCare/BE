@@ -2,7 +2,6 @@ package KEPCO.SSD.user.service;
 
 import KEPCO.SSD.user.dto.Request.LoginRequestDto;
 import KEPCO.SSD.user.dto.Request.SignupRequestDto;
-import KEPCO.SSD.user.dto.Request.UserDto;
 import KEPCO.SSD.user.dto.Response.SignupResponseDto;
 import KEPCO.SSD.user.entity.User;
 import KEPCO.SSD.user.entity.VerificationCode;
@@ -38,35 +37,17 @@ public class UserService {
         verificationCodeRepository.save(codeEntry);
     }
 
-    // 인증번호 생성
-    private String generateVerificationCode() {
-        return String.valueOf((int) (Math.random() * 1000000)); // 6자리 랜덤 숫자
-    }
-
     // 인증번호 확인 로직
     public void verifyCode(String phoneNumber, String verificationCode) {
-        String storedCode = getVerificationCodeFromDB(phoneNumber);
-        LocalDateTime sentAt = getVerificationCodeSentTimeFromDB(phoneNumber);
+        VerificationCode verificationCodeEntry = verificationCodeRepository.findByPhoneNumber(phoneNumber);
 
-        if (storedCode == null || !storedCode.equals(verificationCode)) {
+        if (verificationCodeEntry == null || !verificationCodeEntry.getVerificationCode().equals(verificationCode)) {
             throw new IllegalArgumentException("잘못된 인증번호입니다.");
         }
 
-        if (LocalDateTime.now().isAfter(sentAt.plusMinutes(10))) {
+        if (LocalDateTime.now().isAfter(verificationCodeEntry.getSentAt().plusMinutes(10))) {
             throw new IllegalArgumentException("인증번호가 만료되었습니다.");
         }
-    }
-
-    // DB에서 인증번호를 가져온다.
-    public String getVerificationCodeFromDB(String phoneNumber) {
-        VerificationCode verificationCodeEntry = verificationCodeRepository.findByPhoneNumber(phoneNumber);
-        return verificationCodeEntry != null ? verificationCodeEntry.getVerificationCode() : null;
-    }
-
-    // DB에서 인증번호 전송 시간를 가져온다.
-    private LocalDateTime getVerificationCodeSentTimeFromDB(String phoneNumber) {
-        VerificationCode verificationCodeEntry = verificationCodeRepository.findByPhoneNumber(phoneNumber);
-        return verificationCodeEntry != null ? verificationCodeEntry.getSentAt() : null;
     }
 
     // 회원가입
@@ -83,8 +64,7 @@ public class UserService {
         }
 
         String encodedPassword = passwordEncoder.encode(password);
-        boolean isPhoneNumberDuplicated = userRepository.existsByPhoneNumber(phoneNumber);
-        if (isPhoneNumberDuplicated) {
+        if (userRepository.existsByPhoneNumber(phoneNumber)) {
             throw new IllegalArgumentException("이미 존재하는 계정입니다.");
         }
 
@@ -108,5 +88,10 @@ public class UserService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
         return user;
+    }
+
+    // 인증번호 생성
+    private String generateVerificationCode() {
+        return String.valueOf((int) (Math.random() * 1000000)); // 6자리 랜덤 숫자
     }
 }
