@@ -45,7 +45,7 @@ public class UserController {
     public ResponseEntity<LoginResponseDto> login(@RequestBody @Valid LoginRequestDto request) {
         try {
             User user = userService.login(request);
-            return new ResponseEntity<>(new LoginResponseDto(user.getUserId(), "로그인 성공"), HttpStatus.OK);
+            return new ResponseEntity<>(new LoginResponseDto((int) user.getUserId(), "로그인 성공"), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(new LoginResponseDto(-1, e.getMessage()), HttpStatus.UNAUTHORIZED);
         }
