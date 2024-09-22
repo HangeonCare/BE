@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class DeviceRequestDto {
+public class DeviceRegisterRequestDto {
     private String serialNumber;
+    private String period;
 }

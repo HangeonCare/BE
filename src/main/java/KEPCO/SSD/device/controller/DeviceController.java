@@ -1,6 +1,6 @@
 package KEPCO.SSD.device.controller;
 
-import KEPCO.SSD.device.dto.DeviceRequestDto;
+import KEPCO.SSD.device.dto.DeviceRegisterRequestDto;
 import KEPCO.SSD.device.dto.DeviceResponseDto;
 import KEPCO.SSD.device.dto.PeriodRequestDto;
 import KEPCO.SSD.device.service.DeviceService;
@@ -20,7 +20,7 @@ public class DeviceController {
 
     // 기기 등록
     @PostMapping
-    public DeviceResponseDto registerDevice(@PathVariable Long userId, @RequestBody DeviceRequestDto requestDto) {
+    public DeviceResponseDto registerDevice(@PathVariable Long userId, @RequestBody DeviceRegisterRequestDto requestDto) {
         return deviceService.registerDevice(userId, requestDto);
     }
 
