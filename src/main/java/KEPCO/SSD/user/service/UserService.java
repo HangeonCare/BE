@@ -53,11 +53,8 @@ public class UserService {
     // 회원가입
     public SignupResponseDto signup(SignupRequestDto signupRequestDto) {
         String phoneNumber = signupRequestDto.getPhoneNumber();
-        String verificationCode = signupRequestDto.getVerificationCode();
         String password = signupRequestDto.getPassword();
         String confirmPassword = signupRequestDto.getConfirmPassword();
-
-        verifyCode(phoneNumber, verificationCode);
 
         if (!password.equals(confirmPassword)) {
             throw new IllegalArgumentException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
