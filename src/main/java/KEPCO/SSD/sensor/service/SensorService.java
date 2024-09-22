@@ -29,10 +29,10 @@ public class SensorService {
         logger.info("Serial Number: {}", sensorRequestDto.getSerialNumber());
         logger.info("Value: {}", sensorRequestDto.getValue());
 
-        if (sensorRequestDto.getValue() == 1) {
+        if (sensorRequestDto.getValue() == 0) {
             lastDetectedTime = System.currentTimeMillis();
         }
-        else if (sensorRequestDto.getValue() == 0) {
+        else if (sensorRequestDto.getValue() == 1) {
             Device device = deviceRepository.findByUserIdAndSerialNumber(userId, sensorRequestDto.getSerialNumber())
                     .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
 
