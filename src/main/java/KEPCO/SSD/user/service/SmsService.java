@@ -18,7 +18,6 @@ public class SmsService {
     @Value("${twilio.phone-number}")
     private String twilioPhoneNumber;
 
-
     public void sendSms(String toPhoneNumber, String messageBody) {
         try {
             Twilio.init(accountSid, authToken);
@@ -31,5 +30,4 @@ public class SmsService {
             throw new RuntimeException("SMS 전송에 실패했습니다.", e);
         }
     }
-
 }

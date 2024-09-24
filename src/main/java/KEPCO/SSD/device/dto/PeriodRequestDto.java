@@ -6,5 +6,5 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class PeriodRequestDto {
-    private String period;
+        private String period;
 }
