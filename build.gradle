@@ -41,8 +41,8 @@ dependencies {
 	testImplementation 'io.projectreactor:reactor-test'
 	implementation 'io.jsonwebtoken:jjwt:0.9.1'
 
+	implementation 'org.mariadb.jdbc:mariadb-java-client:3.1.0'
 	implementation 'com.twilio.sdk:twilio:8.32.0'
-	runtimeOnly 'mysql:mysql-connector-java:8.0.33'
 }
 
 tasks.named('test') {
