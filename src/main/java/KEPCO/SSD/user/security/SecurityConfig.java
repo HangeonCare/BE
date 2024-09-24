@@ -24,13 +24,15 @@ public class SecurityConfig implements WebMvcConfigurer {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/users/signup", "/users/login", "/users/send_code").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/").permitAll()
                         .anyRequest().authenticated()
                 )
-                .formLogin(form -> form
-                        .permitAll() // 로그인 페이지 허용
-                )
                 .logout(logout -> logout
-                        .permitAll() // 로그아웃 페이지 허용
+                        .logoutUrl("/users/logout")
+                        .logoutSuccessUrl("/users/login")
+                        .permitAll()
                 );
 
         return http.build();
