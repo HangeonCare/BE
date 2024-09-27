@@ -24,7 +24,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/send_code")
+    @PostMapping("/send-code")
     public ResponseEntity<String> sendCode(@RequestBody @Valid SendCodeRequestDto request) {
         userService.sendVerificationCode(request.getPhoneNumber());
         return ResponseEntity.ok("인증메세지 발송");
