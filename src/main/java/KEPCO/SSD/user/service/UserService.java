@@ -27,7 +27,7 @@ public class UserService {
     // 인증번호 발송 및 저장
     public void sendVerificationCode(String phoneNumber) {
         String verificationCode = generateVerificationCode();
-        smsService.sendSms(phoneNumber, ("인증번호는: " + verificationCode));
+        smsService.sendSms(phoneNumber, "인증번호는: " + verificationCode);
 
         VerificationCode codeEntry = new VerificationCode();
         codeEntry.setPhoneNumber(phoneNumber);
