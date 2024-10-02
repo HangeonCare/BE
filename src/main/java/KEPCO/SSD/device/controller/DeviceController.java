@@ -31,7 +31,7 @@ public class DeviceController {
     }
 
     // 기기 조회
-    @GetMapping
+    @GetMapping("/users/{userId}/devices")
     public List<DeviceResponseDto> getDevices(@PathVariable Long userId) {
         return deviceService.getDevices(userId);
     }
