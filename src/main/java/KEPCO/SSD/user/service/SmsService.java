@@ -20,6 +20,9 @@ public class SmsService {
 
     public void sendSms(String toPhoneNumber, String messageBody) {
         try {
+            if (toPhoneNumber.startsWith("010")) {
+                toPhoneNumber = toPhoneNumber.replaceFirst("010", "+8210");
+            }
             Twilio.init(accountSid, authToken);
             Message.creator(
                             new PhoneNumber(toPhoneNumber),
