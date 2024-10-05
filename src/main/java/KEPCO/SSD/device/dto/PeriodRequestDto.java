@@ -6,5 +6,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class PeriodRequestDto {
-        private String period;
+        private int day;
+        private int hour;
 }

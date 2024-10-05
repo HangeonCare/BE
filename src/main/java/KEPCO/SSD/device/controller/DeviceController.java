@@ -31,7 +31,7 @@ public class DeviceController {
     }
 
     // 기기 조회
-    @GetMapping("/users/{userId}/devices")
+    @GetMapping
     public List<DeviceResponseDto> getDevices(@PathVariable Long userId) {
         return deviceService.getDevices(userId);
     }
@@ -39,6 +39,6 @@ public class DeviceController {
     // 감지 기간 설정
     @PutMapping("/{serialNumber}/period")
     public DeviceResponseDto setPeriod(@PathVariable Long userId, @PathVariable String serialNumber, @RequestBody PeriodRequestDto requestDto) {
-        return deviceService.setPeriod(userId, serialNumber, requestDto.getPeriod());
+        return deviceService.setPeriod(userId, serialNumber, requestDto.getDay(), requestDto.getHour());
     }
 }

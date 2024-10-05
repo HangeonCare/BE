@@ -4,12 +4,14 @@ import lombok.Data;
 @Data
 public class PeriodResponseDto {
     private String message;
-    private String period;
+    private int day;
+    private int hour;
     private String serialNumber;
 
-    public PeriodResponseDto(String message, String serialNumber, String period) {
+    public PeriodResponseDto(String message, String serialNumber, int day, int hour) {
         this.message = message;
-        this.period = period;
+        this.day = day;
+        this.hour = hour;
         this.serialNumber = serialNumber;
     }
 }

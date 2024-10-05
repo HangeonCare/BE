@@ -21,30 +21,32 @@ public class DeviceService {
 
     public DeviceResponseDto registerDevice(Long userId, DeviceRegisterRequestDto requestDto) {
         Device device = new Device(userId, requestDto.getSerialNumber());
-        device.setPeriod(requestDto.getPeriod());
+        device.setDay(1);
+        device.setHour(0);
         deviceRepository.save(device);
-        return new DeviceResponseDto("기기 등록 완료", device.getSerialNumber(), device.getPeriod());
+        return new DeviceResponseDto("기기 등록 완료", device.getSerialNumber(), device.getDay(), device.getHour());
     }
 
     public DeviceResponseDto deleteDevice(Long userId, String serialNumber) {
         Device device = deviceRepository.findByUserIdAndSerialNumber(userId, serialNumber)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
         deviceRepository.delete(device);
-        return new DeviceResponseDto("기기 삭제 완료", serialNumber, device.getPeriod());
+        return new DeviceResponseDto("기기 삭제 완료", serialNumber, device.getDay(), device.getHour());
     }
 
     public List<DeviceResponseDto> getDevices(Long userId) {
         return deviceRepository.findByUserId(userId)
                 .stream()
-                .map(device -> new DeviceResponseDto("기기 조회 완료", device.getSerialNumber(), device.getPeriod()))
+                .map(device -> new DeviceResponseDto("기기 조회 완료", device.getSerialNumber(), device.getDay(), device.getHour()))
                 .collect(Collectors.toList());
     }
 
-    public DeviceResponseDto setPeriod(Long userId, String serialNumber, String period) {
+    public DeviceResponseDto setPeriod(Long userId, String serialNumber, int day, int hour) {
         Device device = deviceRepository.findByUserIdAndSerialNumber(userId, serialNumber)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
-        device.setPeriod(period);
+        device.setDay(day);
+        device.setHour(hour);
         deviceRepository.save(device);
-        return new DeviceResponseDto("기간 설정 완료", serialNumber, device.getPeriod());
+        return new DeviceResponseDto("기간 설정 완료", serialNumber, device.getDay(), device.getHour());
     }
 }

@@ -14,6 +14,8 @@ public class Device {
     @Column(name = "serial_number")
     private String serialNumber;
     private Long userId;
+    private int day;
+    private int hour;
     private String period;
 
     public Device(Long userId, String serialNumber) {
