@@ -7,5 +7,4 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DeviceRegisterRequestDto {
     private String serialNumber;
-    private String period;
 }
