@@ -16,7 +16,7 @@ public class Device {
     private Long userId;
     private int day;
     private int hour;
-    private String period;
+    private int period;
 
     public Device(Long userId, String serialNumber) {
         this.userId = userId;

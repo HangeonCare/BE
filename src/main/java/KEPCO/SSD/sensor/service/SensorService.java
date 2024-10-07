@@ -36,7 +36,7 @@ public class SensorService {
             Device device = deviceRepository.findByUserIdAndSerialNumber(userId, sensorRequestDto.getSerialNumber())
                     .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
 
-            String period = device.getPeriod();
+            int period = device.getPeriod();
 
             if (isExceededPeriod(period)) {
                 smsService.sendSms(String.valueOf(userId), "설정된 기간 동안 움직임이 감지되지 않았습니다.");
@@ -44,8 +44,8 @@ public class SensorService {
         }
     }
 
-    private boolean isExceededPeriod(String period) {
-        long detectionPeriod = Long.parseLong(period);
+    private boolean isExceededPeriod(int period) {
+        long detectionPeriod = period;
         long currentTime = System.currentTimeMillis();
 
         return (currentTime - lastDetectedTime) > detectionPeriod * 60_000;
