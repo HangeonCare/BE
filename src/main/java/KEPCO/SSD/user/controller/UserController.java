@@ -6,23 +6,25 @@ import KEPCO.SSD.user.dto.Request.SendCodeRequestDto;
 import KEPCO.SSD.user.dto.Response.SignupResponseDto;
 import KEPCO.SSD.user.dto.Response.LoginResponseDto;
 import KEPCO.SSD.user.entity.User;
+import KEPCO.SSD.user.repository.UserRepository;
 import KEPCO.SSD.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/users")
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
-
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    private final UserRepository userRepository;
 
     @PostMapping("/send-code")
     public ResponseEntity<String> sendCode(@RequestBody @Valid SendCodeRequestDto request) {
@@ -53,5 +55,10 @@ public class UserController {
     @PostMapping("/logout")
     public ResponseEntity<String> logout() {
         return new ResponseEntity<>("로그아웃 완료", HttpStatus.OK);
+    }
+
+    @GetMapping("/all")
+    public List<User> getAllUser(){
+        return userRepository.findAll();
     }
 }
