@@ -23,7 +23,7 @@ public class SensorController {
 
         sensorService.processSensorData((int) userId, sensorRequestDto);
 
-        SensorResponseDto responseDto = new SensorResponseDto("감지 완료", sensorRequestDto.getSerialNumber());
+        SensorResponseDto responseDto = new SensorResponseDto("감지 완료");
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 }

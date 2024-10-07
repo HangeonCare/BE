@@ -6,5 +6,4 @@ import lombok.Data;
 @AllArgsConstructor
 public class SensorResponseDto {
     private String message;
-    private String serialNumber;
 }
