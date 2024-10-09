@@ -35,15 +35,10 @@ public class SensorService {
         logger.info("Value: {}", sensorRequestDto.getValue());
 
         if (sensorRequestDto.getValue() == 0) {
-            lastDetectedTimeMap.put(sensorRequestDto.getSerialNumber(), System.currentTimeMillis());
-        } else {
             Device device = deviceRepository.findByUserIdAndSerialNumber(userId, sensorRequestDto.getSerialNumber())
                     .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
-            int period = device.getPeriod();
 
-            if (isExceededPeriod(sensorRequestDto.getSerialNumber(), period)) {
-                smsService.sendSms(String.valueOf(userId), "설정된 기간 동안 움직임이 감지되지 않았습니다.");
-            }
+            lastDetectedTimeMap.put(sensorRequestDto.getSerialNumber(), System.currentTimeMillis());
         }
     }
 
@@ -58,7 +53,7 @@ public class SensorService {
             String serialNumber = device.getSerialNumber();
 
             if (isExceededPeriod(serialNumber, period)) {
-                smsService.sendSms(String.valueOf(userId), "설정된 기간 동안 움직임이 감지되지 않았습니다.");
+                smsService.sendSms(String.valueOf(userId), "SSD[고독사 방지 시스템] 설정된 기간 동안 움직임이 감지되지 않았습니다.");
             }
         }
     }
@@ -66,11 +61,6 @@ public class SensorService {
     // 기간 확인
     private boolean isExceededPeriod(String serialNumber, int period) {
         Long lastDetectedTime = lastDetectedTimeMap.get(serialNumber);
-
-        if (lastDetectedTime == null) {
-            return false;
-        }
-
         long currentTime = System.currentTimeMillis();
         return (currentTime - lastDetectedTime) > period * 60_000;
     }
