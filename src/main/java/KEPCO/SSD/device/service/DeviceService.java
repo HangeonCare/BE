@@ -20,6 +20,10 @@ public class DeviceService {
     }
 
     public DeviceResponseDto registerDevice(Long userId, DeviceRegisterRequestDto requestDto) {
+        if (requestDto.getSerialNumber() == null || requestDto.getSerialNumber().isEmpty()) {
+            throw new IllegalArgumentException("유효한 시리얼 번호를 입력하세요.");
+        }
+
         Device device = new Device(userId, requestDto.getSerialNumber());
         device.setDay(1);
         device.setHour(0);
