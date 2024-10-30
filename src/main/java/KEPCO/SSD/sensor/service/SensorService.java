@@ -67,6 +67,6 @@ public class SensorService {
     private boolean canSendAlert(String serialNumber) {
         Long lastAlertTime = lastAlertTimeMap.get(serialNumber);
         long currentTime = System.currentTimeMillis();
-        return lastAlertTime == null || (currentTime - lastAlertTime) > ALERT_COOLDOWN_PERIOD;
+        return (currentTime - lastAlertTime) > ALERT_COOLDOWN_PERIOD;
     }
 }
