@@ -3,27 +3,28 @@ package KEPCO.SSD.sensor.service;
 import KEPCO.SSD.device.entity.Device;
 import KEPCO.SSD.device.repository.DeviceRepository;
 import KEPCO.SSD.user.entity.User;
-import KEPCO.SSD.user.repository.UserRepository; // UserRepository 추가
+import KEPCO.SSD.user.repository.UserRepository;
 import KEPCO.SSD.user.service.SmsService;
 import KEPCO.SSD.sensor.dto.SensorRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class SensorService {
 
+    private static final long ALERT_COOLDOWN_PERIOD = 300_000;
     private static final Logger logger = LoggerFactory.getLogger(SensorService.class);
     private final DeviceRepository deviceRepository;
     private final SmsService smsService;
-    private final UserRepository userRepository; // UserRepository 추가
+    private final UserRepository userRepository;
 
-    private final Map<String, Long> lastDetectedTimeMap = new HashMap<>();
+    private final Map<String, Long> lastDetectedTimeMap = new ConcurrentHashMap<>();
+    private final Map<String, Long> lastAlertTimeMap = new ConcurrentHashMap<>();
 
     public SensorService(DeviceRepository deviceRepository, SmsService smsService, UserRepository userRepository) {
         this.deviceRepository = deviceRepository;
@@ -39,21 +40,15 @@ public class SensorService {
         if (sensorRequestDto.getValue() == 0) {
             Device device = deviceRepository.findByUserIdAndSerialNumber(userId, sensorRequestDto.getSerialNumber())
                     .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
-
             lastDetectedTimeMap.put(sensorRequestDto.getSerialNumber(), System.currentTimeMillis());
-        }
-    }
+        } else if (sensorRequestDto.getValue() == 1) {
+            Device device = deviceRepository.findByUserIdAndSerialNumber(userId, sensorRequestDto.getSerialNumber())
+                    .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
 
-    @Scheduled(initialDelay = 0, fixedDelay = 1000)
-    private void checkPeriodExceeded() {
-        Iterable<Device> allDevices = deviceRepository.findAll();
-
-        for (Device device : allDevices) {
-            int userId = Math.toIntExact(device.getUserId());
             int period = device.getPeriod();
             String serialNumber = device.getSerialNumber();
 
-            if (isExceededPeriod(serialNumber, period)) {
+            if (isExceededPeriod(serialNumber, period)&& canSendAlert(serialNumber)) {
                 User user = userRepository.findById(userId).orElse(null);
                 if (user != null) {
                     String phoneNumber = user.getPhoneNumber();
@@ -64,10 +59,14 @@ public class SensorService {
             }
         }
     }
-
     private boolean isExceededPeriod(String serialNumber, int period) {
         Long lastDetectedTime = lastDetectedTimeMap.get(serialNumber);
         long currentTime = System.currentTimeMillis();
         return (lastDetectedTime == null || (currentTime - lastDetectedTime) > period * 60_000);
+    }
+    private boolean canSendAlert(String serialNumber) {
+        Long lastAlertTime = lastAlertTimeMap.get(serialNumber);
+        long currentTime = System.currentTimeMillis();
+        return lastAlertTime == null || (currentTime - lastAlertTime) > ALERT_COOLDOWN_PERIOD;
     }
 }
