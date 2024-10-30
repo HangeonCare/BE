@@ -52,7 +52,7 @@ public class SensorService {
                 User user = userRepository.findById(userId).orElse(null);
                 if (user != null) {
                     String phoneNumber = user.getPhoneNumber();
-                    smsService.sendSms(phoneNumber, "SSD[고독사 방지 시스템] 설정된 기간 동안 움직임이 감지되지 않았습니다.");
+                    smsService.sendSms(phoneNumber, "SSD[고독사 방지 시스템]\n 설정된 기간 동안 움직임이 감지되지 않았습니다.");
                 } else {
                     logger.warn("사용자를 찾을 수 없습니다. userId: {}", userId);
                 }
@@ -62,7 +62,7 @@ public class SensorService {
     private boolean isExceededPeriod(String serialNumber, int period) {
         Long lastDetectedTime = lastDetectedTimeMap.get(serialNumber);
         long currentTime = System.currentTimeMillis();
-        return (lastDetectedTime == null || (currentTime - lastDetectedTime) > period * 60_000);
+        return (currentTime - lastDetectedTime) > period * 60_000;
     }
     private boolean canSendAlert(String serialNumber) {
         Long lastAlertTime = lastAlertTimeMap.get(serialNumber);
