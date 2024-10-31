@@ -37,16 +37,14 @@ public class SensorService {
         logger.info("Serial Number: {}", sensorRequestDto.getSerialNumber());
         logger.info("Value: {}", sensorRequestDto.getValue());
 
+        Device device = deviceRepository.findByUserIdAndSerialNumber(userId, sensorRequestDto.getSerialNumber())
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
+
         if (sensorRequestDto.getValue() == 0) {
-            Device device = deviceRepository.findByUserIdAndSerialNumber(userId, sensorRequestDto.getSerialNumber())
-                    .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
             String serialNumber = device.getSerialNumber();
             lastDetectedTimeMap.put(sensorRequestDto.getSerialNumber(), System.currentTimeMillis());
-            lastAlertTimeMap.put(serialNumber, null);
+            lastAlertTimeMap.put(serialNumber, 0L);
         } else if (sensorRequestDto.getValue() == 1) {
-            Device device = deviceRepository.findByUserIdAndSerialNumber(userId, sensorRequestDto.getSerialNumber())
-                    .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
-
             int period = device.getPeriod();
             String serialNumber = device.getSerialNumber();
 
@@ -70,6 +68,6 @@ public class SensorService {
     private boolean canSendAlert(String serialNumber) {
         Long lastAlertTime = lastAlertTimeMap.get(serialNumber);
         long currentTime = System.currentTimeMillis();
-        return lastAlertTime == null || (currentTime - lastAlertTime) > ALERT_COOLDOWN_PERIOD;
+        return lastAlertTime == 0 || (currentTime - lastAlertTime) > ALERT_COOLDOWN_PERIOD;
     }
 }
