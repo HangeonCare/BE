@@ -40,7 +40,9 @@ public class SensorService {
         if (sensorRequestDto.getValue() == 0) {
             Device device = deviceRepository.findByUserIdAndSerialNumber(userId, sensorRequestDto.getSerialNumber())
                     .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
+            String serialNumber = device.getSerialNumber();
             lastDetectedTimeMap.put(sensorRequestDto.getSerialNumber(), System.currentTimeMillis());
+            lastAlertTimeMap.put(serialNumber, null);
         } else if (sensorRequestDto.getValue() == 1) {
             Device device = deviceRepository.findByUserIdAndSerialNumber(userId, sensorRequestDto.getSerialNumber())
                     .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
