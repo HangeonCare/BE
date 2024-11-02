@@ -1,5 +1,6 @@
 package KEPCO.SSD.device.controller;
 
+import KEPCO.SSD.device.dto.DeviceGetResponseDto;
 import KEPCO.SSD.device.dto.DeviceRegisterRequestDto;
 import KEPCO.SSD.device.dto.DeviceResponseDto;
 import KEPCO.SSD.device.dto.PeriodRequestDto;
@@ -32,7 +33,7 @@ public class DeviceController {
 
     // 기기 조회
     @GetMapping
-    public List<DeviceResponseDto> getDevices(@PathVariable Long userId) {
+    public List<DeviceGetResponseDto> getDevices(@PathVariable Long userId) {
         return deviceService.getDevices(userId);
     }
 

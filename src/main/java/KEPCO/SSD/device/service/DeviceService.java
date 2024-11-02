@@ -1,5 +1,6 @@
 package KEPCO.SSD.device.service;
 
+import KEPCO.SSD.device.dto.DeviceGetResponseDto;
 import KEPCO.SSD.device.dto.DeviceRegisterRequestDto;
 import KEPCO.SSD.device.dto.DeviceResponseDto;
 import KEPCO.SSD.device.entity.Device;
@@ -30,20 +31,20 @@ public class DeviceService {
         device.setDay(1);
         device.setHour(0);
         deviceRepository.save(device);
-        return new DeviceResponseDto("기기 등록 완료", device.getSerialNumber(), device.getDay(), device.getHour(), device.isAction());
+        return new DeviceResponseDto("기기 등록 완료", device.getSerialNumber(), device.getDay(), device.getHour());
     }
 
     public DeviceResponseDto deleteDevice(Long userId, String serialNumber) {
         Device device = deviceRepository.findByUserIdAndSerialNumber(userId, serialNumber)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
         deviceRepository.delete(device);
-        return new DeviceResponseDto("기기 삭제 완료", serialNumber, device.getDay(), device.getHour(), device.isAction());
+        return new DeviceResponseDto("기기 삭제 완료", serialNumber, device.getDay(), device.getHour());
     }
 
-    public List<DeviceResponseDto> getDevices(Long userId) {
+    public List<DeviceGetResponseDto> getDevices(Long userId) {
         return deviceRepository.findByUserId(userId)
                 .stream()
-                .map(device -> new DeviceResponseDto("기기 조회 완료", device.getSerialNumber(), device.getDay(), device.getHour(), device.isAction()))
+                .map(device -> new DeviceGetResponseDto("기기 조회 완료", device.getSerialNumber(), device.isAction()))
                 .collect(Collectors.toList());
     }
 
@@ -53,6 +54,6 @@ public class DeviceService {
         device.setDay(day);
         device.setHour(hour);
         deviceRepository.save(device);
-        return new DeviceResponseDto("기간 설정 완료", serialNumber, device.getDay(), device.getHour(), device.isAction());
+        return new DeviceResponseDto("기간 설정 완료", serialNumber, device.getDay(), device.getHour());
     }
 }
