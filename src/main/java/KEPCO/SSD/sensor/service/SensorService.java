@@ -44,6 +44,9 @@ public class SensorService {
             String serialNumber = device.getSerialNumber();
             lastDetectedTimeMap.put(sensorRequestDto.getSerialNumber(), System.currentTimeMillis());
             lastAlertTimeMap.put(serialNumber, 0L);
+
+            device.setAction(true);
+            deviceRepository.save(device);
         } else if (sensorRequestDto.getValue() == 1) {
             int period = device.getPeriod();
             String serialNumber = device.getSerialNumber();
@@ -54,6 +57,9 @@ public class SensorService {
                     String phoneNumber = user.getPhoneNumber();
                     smsService.sendSms(phoneNumber, String.format("SSD [고독사 방지 시스템]\n%s(이)가 설정된 기간 동안 움직임을 감지하지 못했습니다.", serialNumber));
                     lastAlertTimeMap.put(serialNumber, System.currentTimeMillis());
+
+                    device.setAction(false);
+                    deviceRepository.save(device);
                 } else {
                     logger.warn("사용자를 찾을 수 없습니다. userId: {}", userId);
                 }

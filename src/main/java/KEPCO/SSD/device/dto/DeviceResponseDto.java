@@ -7,7 +7,7 @@ public class DeviceResponseDto {
     private String message;
     private String serialNumber;
 
-    public DeviceResponseDto(String message, String serialNumber, int day, int hour) {
+    public DeviceResponseDto(String message, String serialNumber, int day, int hour, boolean action) {
         this.message = message;
         this.serialNumber = serialNumber;
     }
