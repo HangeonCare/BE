@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,11 +26,12 @@ public class SensorService {
 
     private final Map<String, Long> lastDetectedTimeMap = new ConcurrentHashMap<>();
     private final Map<String, Long> lastAlertTimeMap = new ConcurrentHashMap<>();
+    private final Map<String, Map<LocalDateTime, Integer>> eventTimesMap = new ConcurrentHashMap<>();
 
     public SensorService(DeviceRepository deviceRepository, SmsService smsService, UserRepository userRepository) {
         this.deviceRepository = deviceRepository;
         this.smsService = smsService;
-        this.userRepository = userRepository; // UserRepository 주입
+        this.userRepository = userRepository;
     }
 
     public void processSensorData(int userId, SensorRequestDto sensorRequestDto) {
@@ -40,8 +42,13 @@ public class SensorService {
         Device device = deviceRepository.findByUserIdAndSerialNumber(userId, sensorRequestDto.getSerialNumber())
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
 
+        LocalDateTime now = LocalDateTime.now();
+        String serialNumber = device.getSerialNumber();
+
         if (sensorRequestDto.getValue() == 0) {
-            String serialNumber = device.getSerialNumber();
+            eventTimesMap.putIfAbsent(serialNumber, new ConcurrentHashMap<>());
+            eventTimesMap.get(serialNumber).merge(now.withMinute(0).withSecond(0).withNano(0), 1, Integer::sum);
+
             lastDetectedTimeMap.put(sensorRequestDto.getSerialNumber(), System.currentTimeMillis());
             lastAlertTimeMap.put(serialNumber, 0L);
 
@@ -49,7 +56,8 @@ public class SensorService {
             deviceRepository.save(device);
         } else if (sensorRequestDto.getValue() == 1) {
             int period = device.getPeriod();
-            String serialNumber = device.getSerialNumber();
+            eventTimesMap.putIfAbsent(serialNumber, new ConcurrentHashMap<>());
+            eventTimesMap.get(serialNumber).merge(now.withMinute(0).withSecond(0).withNano(0), 1, Integer::sum);
 
             if (isExceededPeriod(serialNumber, period)&& canSendAlert(serialNumber)) {
                 User user = userRepository.findById(userId).orElse(null);
@@ -75,5 +83,9 @@ public class SensorService {
         Long lastAlertTime = lastAlertTimeMap.get(serialNumber);
         long currentTime = System.currentTimeMillis();
         return lastAlertTime == 0 || (currentTime - lastAlertTime) > ALERT_COOLDOWN_PERIOD;
+    }
+
+    public Map<String, Map<LocalDateTime, Integer>> getEventTimesMap() {
+        return eventTimesMap;
     }
 }

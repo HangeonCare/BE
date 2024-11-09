@@ -1,22 +1,26 @@
 package KEPCO.SSD.device.service;
 
+import KEPCO.SSD.device.dto.DeviceAiResponseDto;
 import KEPCO.SSD.device.dto.DeviceGetResponseDto;
 import KEPCO.SSD.device.dto.DeviceRegisterRequestDto;
 import KEPCO.SSD.device.dto.DeviceResponseDto;
 import KEPCO.SSD.device.entity.Device;
 import KEPCO.SSD.device.repository.DeviceRepository;
+import KEPCO.SSD.sensor.service.SensorService;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.time.*;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.NoSuchElementException;
 
 @Service
 public class DeviceService {
 
     private final DeviceRepository deviceRepository;
+    private final SensorService sensorService;
 
-    public DeviceService(DeviceRepository deviceRepository) {
+    public DeviceService(DeviceRepository deviceRepository, SensorService sensorService) {
+        this.sensorService = sensorService;
         this.deviceRepository = deviceRepository;
     }
 
@@ -48,12 +52,26 @@ public class DeviceService {
                 .collect(Collectors.toList());
     }
 
-    public DeviceResponseDto setPeriod(Long userId, String serialNumber, int day, int hour) {
-        Device device = deviceRepository.findByUserIdAndSerialNumber(userId, serialNumber)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
-        device.setDay(day);
-        device.setHour(hour);
-        deviceRepository.save(device);
-        return new DeviceResponseDto("기간 설정 완료", serialNumber, device.getDay(), device.getHour());
+    public DeviceAiResponseDto getMonthlyOpenCloseTimes(Long userId, String serialNumber, int month) {
+        Map<LocalDateTime, Integer> eventTimes = sensorService.getEventTimesMap().get(serialNumber);
+
+        List<List<Integer>> monthlyEventCounts = new ArrayList<>();
+        YearMonth yearMonth = YearMonth.of(LocalDate.now().getYear(), month);
+        int daysInMonth = yearMonth.lengthOfMonth();
+
+        for (int day = 1; day <= daysInMonth; day++) {
+            List<Integer> eventCountsForDay = new ArrayList<>(Collections.nCopies(24, 0));
+
+            for (int hour = 0; hour < 24; hour++) {
+                LocalTime time = LocalTime.of(hour, 0);
+                LocalDateTime timeKey = time.atDate(yearMonth.atDay(day));  // 해당 날짜의 시간에 대한 LocalDateTime
+
+                eventCountsForDay.set(hour, eventTimes != null ? eventTimes.getOrDefault(timeKey, 0) : 0);
+            }
+
+            monthlyEventCounts.add(eventCountsForDay);
+        }
+
+        return new DeviceAiResponseDto(month, monthlyEventCounts);
     }
 }
