@@ -40,10 +40,9 @@ public class DeviceController {
 
     // ai
     @GetMapping("/{serialNumber}/ai")
-    public DeviceAiResponseDto getMonthlyOpenCloseTimes(
+    public DeviceAiResponseDto getOpenCloseTimes(
             @PathVariable Long userId,
             @PathVariable String serialNumber) {
-        int month = LocalDate.now().getMonthValue();
-        return deviceService.getMonthlyOpenCloseTimes(userId, serialNumber, month);
+        return deviceService.getOpenCloseTimes(userId, serialNumber);
     }
 }

@@ -52,26 +52,27 @@ public class DeviceService {
                 .collect(Collectors.toList());
     }
 
-    public DeviceAiResponseDto getMonthlyOpenCloseTimes(Long userId, String serialNumber, int month) {
+    public DeviceAiResponseDto getOpenCloseTimes(Long userId, String serialNumber) {
         Map<LocalDateTime, Integer> eventTimes = sensorService.getEventTimesMap().get(serialNumber);
 
-        List<List<Integer>> monthlyEventCounts = new ArrayList<>();
-        YearMonth yearMonth = YearMonth.of(LocalDate.now().getYear(), month);
-        int daysInMonth = yearMonth.lengthOfMonth();
+        List<List<Integer>> eventCounts = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
 
-        for (int day = 1; day <= daysInMonth; day++) {
-            List<Integer> eventCountsForDay = new ArrayList<>(Collections.nCopies(24, 0));
+        for (int dayOffset = 0; dayOffset < 7; dayOffset++) {
+            List<Integer> eventCountsForDay = new ArrayList<>(Collections.nCopies(5, 0));
+            LocalDateTime targetDate = now.minusDays(dayOffset);
 
-            for (int hour = 0; hour < 24; hour++) {
-                LocalTime time = LocalTime.of(hour, 0);
-                LocalDateTime timeKey = time.atDate(yearMonth.atDay(day));  // 해당 날짜의 시간에 대한 LocalDateTime
 
-                eventCountsForDay.set(hour, eventTimes != null ? eventTimes.getOrDefault(timeKey, 0) : 0);
+            int[] hours = {1, 6, 12, 18, 24};
+            for (int i = 0; i < hours.length; i++) {
+                LocalDateTime timeKey = targetDate.withHour(hours[i] - 1).withMinute(0).withSecond(0).withNano(0);
+
+                eventCountsForDay.set(i, eventTimes != null ? eventTimes.getOrDefault(timeKey, 0) : 0);
             }
 
-            monthlyEventCounts.add(eventCountsForDay);
+            eventCounts.add(eventCountsForDay);
         }
 
-        return new DeviceAiResponseDto(month, monthlyEventCounts);
+        return new DeviceAiResponseDto(eventCounts);
     }
 }

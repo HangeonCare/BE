@@ -27,6 +27,7 @@ public class SensorService {
     private final Map<String, Long> lastDetectedTimeMap = new ConcurrentHashMap<>();
     private final Map<String, Long> lastAlertTimeMap = new ConcurrentHashMap<>();
     private final Map<String, Map<LocalDateTime, Integer>> eventTimesMap = new ConcurrentHashMap<>();
+    private static final int[] EVENT_HOURS = {1, 6, 12, 18, 24};
 
     public SensorService(DeviceRepository deviceRepository, SmsService smsService, UserRepository userRepository) {
         this.deviceRepository = deviceRepository;
@@ -47,7 +48,9 @@ public class SensorService {
 
         if (sensorRequestDto.getValue() == 0) {
             eventTimesMap.putIfAbsent(serialNumber, new ConcurrentHashMap<>());
-            eventTimesMap.get(serialNumber).merge(now.withMinute(0).withSecond(0).withNano(0), 1, Integer::sum);
+            int hourBucket = getClosestHourBucket(now.getHour());
+            LocalDateTime timeKey = now.withHour(hourBucket).withMinute(0).withSecond(0).withNano(0);
+            eventTimesMap.get(serialNumber).merge(timeKey, 1, Integer::sum);
 
             lastDetectedTimeMap.put(sensorRequestDto.getSerialNumber(), System.currentTimeMillis());
             lastAlertTimeMap.put(serialNumber, 0L);
@@ -83,6 +86,15 @@ public class SensorService {
         Long lastAlertTime = lastAlertTimeMap.get(serialNumber);
         long currentTime = System.currentTimeMillis();
         return lastAlertTime == 0 || (currentTime - lastAlertTime) > ALERT_COOLDOWN_PERIOD;
+    }
+
+    private int getClosestHourBucket(int currentHour) {
+        for (int hour : EVENT_HOURS) {
+            if (currentHour < hour) {
+                return hour - 1;
+            }
+        }
+        return EVENT_HOURS[EVENT_HOURS.length - 1] - 1;
     }
 
     public Map<String, Map<LocalDateTime, Integer>> getEventTimesMap() {
