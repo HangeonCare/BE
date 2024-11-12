@@ -59,11 +59,11 @@ public class DeviceService {
         LocalDateTime now = LocalDateTime.now();
 
         for (int dayOffset = 0; dayOffset < 7; dayOffset++) {
-            List<Integer> eventCountsForDay = new ArrayList<>(Collections.nCopies(5, 0));
+            List<Integer> eventCountsForDay = new ArrayList<>(Collections.nCopies(4, 0));
             LocalDateTime targetDate = now.minusDays(dayOffset);
 
 
-            int[] hours = {1, 6, 12, 18, 24};
+            int[] hours = {6, 12, 18, 24};
             for (int i = 0; i < hours.length; i++) {
                 LocalDateTime timeKey = targetDate.withHour(hours[i] - 1).withMinute(0).withSecond(0).withNano(0);
 

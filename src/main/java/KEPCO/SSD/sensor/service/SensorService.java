@@ -27,7 +27,7 @@ public class SensorService {
     private final Map<String, Long> lastDetectedTimeMap = new ConcurrentHashMap<>();
     private final Map<String, Long> lastAlertTimeMap = new ConcurrentHashMap<>();
     private final Map<String, Map<LocalDateTime, Integer>> eventTimesMap = new ConcurrentHashMap<>();
-    private static final int[] EVENT_HOURS = {1, 6, 12, 18, 24};
+    private static final int[] EVENT_HOURS = {6, 12, 18, 24};
 
     public SensorService(DeviceRepository deviceRepository, SmsService smsService, UserRepository userRepository) {
         this.deviceRepository = deviceRepository;
