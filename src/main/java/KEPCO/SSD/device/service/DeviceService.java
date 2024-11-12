@@ -5,11 +5,13 @@ import KEPCO.SSD.device.dto.DeviceGetResponseDto;
 import KEPCO.SSD.device.dto.DeviceRegisterRequestDto;
 import KEPCO.SSD.device.dto.DeviceResponseDto;
 import KEPCO.SSD.device.entity.Device;
+import KEPCO.SSD.device.entity.SensorData;
 import KEPCO.SSD.device.repository.DeviceRepository;
+import KEPCO.SSD.device.repository.SensorDataRepository;
 import KEPCO.SSD.sensor.service.SensorService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
-import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -17,11 +19,13 @@ import java.util.stream.Collectors;
 public class DeviceService {
 
     private final DeviceRepository deviceRepository;
+    private final SensorDataRepository sensorDataRepository;
     private final SensorService sensorService;
 
-    public DeviceService(DeviceRepository deviceRepository, SensorService sensorService) {
-        this.sensorService = sensorService;
+    public DeviceService(DeviceRepository deviceRepository, SensorDataRepository sensorDataRepository, SensorService sensorService) {
         this.deviceRepository = deviceRepository;
+        this.sensorDataRepository = sensorDataRepository;
+        this.sensorService = sensorService;
     }
 
     public DeviceResponseDto registerDevice(Long userId, DeviceRegisterRequestDto requestDto) {
@@ -53,24 +57,27 @@ public class DeviceService {
     }
 
     public DeviceAiResponseDto getOpenCloseTimes(Long userId, String serialNumber) {
-        Map<LocalDateTime, Integer> eventTimes = sensorService.getEventTimesMap().get(serialNumber);
+        // sensorDataRepository를 통해 데이터 조회
+        List<SensorData> recentData = sensorDataRepository.findByUserIdAndSerialNumberOrderByTimeDesc(userId, serialNumber);
 
         List<List<Integer>> eventCounts = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now();
+        for (int i = 0; i < 7; i++) {
+            List<Integer> dayCounts = new ArrayList<>(Collections.nCopies(4, 0));
+            if (i < recentData.size()) {
+                String eventCountsJson = recentData.get(i).getEventCounts();
+                try {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Map<String, Integer> eventCountsMap = objectMapper.readValue(eventCountsJson, Map.class);
 
-        for (int dayOffset = 0; dayOffset < 7; dayOffset++) {
-            List<Integer> eventCountsForDay = new ArrayList<>(Collections.nCopies(4, 0));
-            LocalDateTime targetDate = now.minusDays(dayOffset);
-
-
-            int[] hours = {6, 12, 18, 24};
-            for (int i = 0; i < hours.length; i++) {
-                LocalDateTime timeKey = targetDate.withHour(hours[i] - 1).withMinute(0).withSecond(0).withNano(0);
-
-                eventCountsForDay.set(i, eventTimes != null ? eventTimes.getOrDefault(timeKey, 0) : 0);
+                    for (int j = 0; j < 4; j++) {
+                        String key = String.valueOf(j); // 예: "0", "1", "2", "3"
+                        dayCounts.set(j, eventCountsMap.getOrDefault(key, 0));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-
-            eventCounts.add(eventCountsForDay);
+            eventCounts.add(dayCounts);
         }
 
         return new DeviceAiResponseDto(eventCounts);

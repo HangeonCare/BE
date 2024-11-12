@@ -1,11 +1,14 @@
 package KEPCO.SSD.sensor.service;
 
 import KEPCO.SSD.device.entity.Device;
+import KEPCO.SSD.device.entity.SensorData;
 import KEPCO.SSD.device.repository.DeviceRepository;
+import KEPCO.SSD.device.repository.SensorDataRepository;
 import KEPCO.SSD.user.entity.User;
 import KEPCO.SSD.user.repository.UserRepository;
 import KEPCO.SSD.user.service.SmsService;
 import KEPCO.SSD.sensor.dto.SensorRequestDto;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,19 +23,22 @@ public class SensorService {
 
     private static final long ALERT_COOLDOWN_PERIOD = 300_000;
     private static final Logger logger = LoggerFactory.getLogger(SensorService.class);
-    private final DeviceRepository deviceRepository;
     private final SmsService smsService;
+    private final DeviceRepository deviceRepository;
     private final UserRepository userRepository;
+    private final SensorDataRepository sensorDataRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final Map<String, Long> lastDetectedTimeMap = new ConcurrentHashMap<>();
     private final Map<String, Long> lastAlertTimeMap = new ConcurrentHashMap<>();
     private final Map<String, Map<LocalDateTime, Integer>> eventTimesMap = new ConcurrentHashMap<>();
     private static final int[] EVENT_HOURS = {6, 12, 18, 24};
 
-    public SensorService(DeviceRepository deviceRepository, SmsService smsService, UserRepository userRepository) {
-        this.deviceRepository = deviceRepository;
+    public SensorService(SmsService smsService, DeviceRepository deviceRepository, UserRepository userRepository, SensorDataRepository sensorDataRepository) {
         this.smsService = smsService;
+        this.deviceRepository = deviceRepository;
         this.userRepository = userRepository;
+        this.sensorDataRepository = sensorDataRepository;
     }
 
     public void processSensorData(int userId, SensorRequestDto sensorRequestDto) {
@@ -47,20 +53,36 @@ public class SensorService {
         String serialNumber = device.getSerialNumber();
 
         if (sensorRequestDto.getValue() == 0) {
-            eventTimesMap.putIfAbsent(serialNumber, new ConcurrentHashMap<>());
-            int hourBucket = getClosestHourBucket(now.getHour());
-            LocalDateTime timeKey = now.withHour(hourBucket).withMinute(0).withSecond(0).withNano(0);
-            eventTimesMap.get(serialNumber).merge(timeKey, 1, Integer::sum);
-
             lastDetectedTimeMap.put(sensorRequestDto.getSerialNumber(), System.currentTimeMillis());
             lastAlertTimeMap.put(serialNumber, 0L);
 
             device.setAction(true);
             deviceRepository.save(device);
         } else if (sensorRequestDto.getValue() == 1) {
+            if (device.isAction()) {
+                // 문이 닫히는 경우에만 카운트를 기록
+                eventTimesMap.putIfAbsent(serialNumber, new ConcurrentHashMap<>());
+                int hourBucket = getClosestHourBucket(now.getHour());
+                LocalDateTime timeKey = now.withHour(hourBucket).withMinute(0).withSecond(0).withNano(0);
+                eventTimesMap.get(serialNumber).merge(timeKey, 1, Integer::sum);
+
+                // 이벤트 데이터를 저장
+                Map<LocalDateTime, Integer> events = eventTimesMap.get(serialNumber);
+                try {
+                    String eventCountsJson = objectMapper.writeValueAsString(events);
+
+                    SensorData sensorData = new SensorData();
+                    sensorData.setUserId((long) userId);
+                    sensorData.setSerialNumber(serialNumber);
+                    sensorData.setEventCounts(eventCountsJson);
+                    sensorData.setTime(LocalDateTime.now());
+
+                    sensorDataRepository.save(sensorData);
+                } catch (Exception e) {
+                    logger.error("이벤트 데이터를 저장하는 중 오류 발생", e);
+                }
+            }
             int period = device.getPeriod();
-            eventTimesMap.putIfAbsent(serialNumber, new ConcurrentHashMap<>());
-            eventTimesMap.get(serialNumber).merge(now.withMinute(0).withSecond(0).withNano(0), 1, Integer::sum);
 
             if (isExceededPeriod(serialNumber, period)&& canSendAlert(serialNumber)) {
                 User user = userRepository.findById(userId).orElse(null);
