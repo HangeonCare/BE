@@ -8,7 +8,6 @@ import KEPCO.SSD.device.service.DeviceService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.time.*;
 
 @RestController
 @RequestMapping("/users/{userId}/devices")
