@@ -57,7 +57,6 @@ public class DeviceService {
     }
 
     public DeviceAiResponseDto getOpenCloseTimes(Long userId, String serialNumber) {
-        // sensorDataRepository를 통해 데이터 조회
         List<SensorData> recentData = sensorDataRepository.findByUserIdAndSerialNumberOrderByTimeDesc(userId, serialNumber);
 
         List<List<Integer>> eventCounts = new ArrayList<>();
@@ -70,7 +69,7 @@ public class DeviceService {
                     Map<String, Integer> eventCountsMap = objectMapper.readValue(eventCountsJson, Map.class);
 
                     for (int j = 0; j < 4; j++) {
-                        String key = String.valueOf(j); // 예: "0", "1", "2", "3"
+                        String key = String.valueOf(j);
                         dayCounts.set(j, eventCountsMap.getOrDefault(key, 0));
                     }
                 } catch (Exception e) {
