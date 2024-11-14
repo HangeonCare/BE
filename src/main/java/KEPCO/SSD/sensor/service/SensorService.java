@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -68,10 +69,9 @@ public class SensorService {
             if (isDoorClosedMap.getOrDefault(serialNumber, false)) {
                 isDoorClosedMap.put(serialNumber, false);
                 int hourBucket = getClosestHourBucket(now.getHour());
-
                 try {
-                    LocalDateTime todayStart = now.toLocalDate().atStartOfDay();
-                    SensorData sensorData = sensorDataRepository.findByUserIdAndSerialNumberAndDate(userId, serialNumber, todayStart)
+                    LocalDateTime todayStart = LocalDate.now().atStartOfDay();
+                    SensorData sensorData = sensorDataRepository.findByUserIdAndSerialNumberAndTime((long) userId, serialNumber, todayStart)
                             .orElseGet(() -> {
                                 try {
                                     SensorData newSensorData = new SensorData();
@@ -85,7 +85,6 @@ public class SensorService {
                                     return null;
                                 }
                             });
-
                     if (sensorData != null) {
                         Map<String, Integer> hourCounts = objectMapper.readValue(sensorData.getEventCounts(), new TypeReference<Map<String, Integer>>() {});
                         hourCounts.put(String.valueOf(hourBucket), hourCounts.getOrDefault(String.valueOf(hourBucket), 0) + 1);

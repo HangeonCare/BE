@@ -11,6 +11,5 @@ import java.util.Optional;
 @Repository
 public interface SensorDataRepository extends JpaRepository<SensorData, Integer> {
     List<SensorData> findByUserIdAndSerialNumberOrderByTimeDesc(Long userId, String serialNumber);
-
-    Optional<SensorData> findByUserIdAndSerialNumberAndDate(int userId, String serialNumber, LocalDateTime todayStart);
+    Optional<SensorData> findByUserIdAndSerialNumberAndTime(Long userId, String serialNumber, LocalDateTime time);
 }
