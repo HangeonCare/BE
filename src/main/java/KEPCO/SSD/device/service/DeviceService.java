@@ -12,6 +12,7 @@ import KEPCO.SSD.sensor.service.SensorService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,13 +58,23 @@ public class DeviceService {
     }
 
     public DeviceAiResponseDto getOpenCloseTimes(Long userId, String serialNumber) {
-        List<SensorData> recentData = sensorDataRepository.findByUserIdAndSerialNumberOrderByTimeDesc(userId, serialNumber);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime sevenDaysAgo = now.minusDays(7);
+
+        List<SensorData> sensorDataList = sensorDataRepository.findByUserIdAndSerialNumberOrderByTimeDesc(userId, serialNumber);
+
+        List<SensorData> filteredData = sensorDataList.stream()
+                .filter(data -> {
+                    LocalDateTime dataTime = data.getTime();
+                    return dataTime.isBefore(now.toLocalDate().atStartOfDay()) && dataTime.isAfter(sevenDaysAgo);
+                })
+                .collect(Collectors.toList());
 
         List<List<Integer>> eventCounts = new ArrayList<>();
         for (int i = 0; i < 7; i++) {
             List<Integer> dayCounts = new ArrayList<>(Collections.nCopies(4, 0));
-            if (i < recentData.size()) {
-                String eventCountsJson = recentData.get(i).getEventCounts();
+            if (i < filteredData.size()) {
+                String eventCountsJson = filteredData.get(i).getEventCounts();
                 try {
                     ObjectMapper objectMapper = new ObjectMapper();
                     Map<String, Integer> eventCountsMap = objectMapper.readValue(eventCountsJson, Map.class);
