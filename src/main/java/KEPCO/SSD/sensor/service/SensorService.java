@@ -102,7 +102,7 @@ public class SensorService {
                 User user = userRepository.findById(userId).orElse(null);
                 if (user != null) {
                     String phoneNumber = user.getPhoneNumber();
-                    smsService.sendSms(phoneNumber, String.format("SSD [고독사 방지 시스템]\n%s(이)가 설정된 기간 동안 움직임을 감지하지 못했습니다.", serialNumber));
+                    smsService.sendSms(phoneNumber, String.format("SSD [고독사 방지 시스템]\n%s(이)가 평소보다 움직임을 덜 감지하였습니다.", serialNumber));
                     lastAlertTimeMap.put(serialNumber, System.currentTimeMillis());
 
                     device.setAction(false);
