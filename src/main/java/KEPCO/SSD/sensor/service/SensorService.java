@@ -116,7 +116,7 @@ public class SensorService {
     private boolean isExceededPeriod(String serialNumber, int period) {
         Long lastDetectedTime = lastDetectedTimeMap.get(serialNumber);
         long currentTime = System.currentTimeMillis();
-        return (currentTime - lastDetectedTime) > period * 60_000;
+        return (currentTime - lastDetectedTime) > period * 10_000;
     }
     private boolean canSendAlert(String serialNumber) {
         Long lastAlertTime = lastAlertTimeMap.get(serialNumber);
