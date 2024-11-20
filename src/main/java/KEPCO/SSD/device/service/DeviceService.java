@@ -1,9 +1,6 @@
 package KEPCO.SSD.device.service;
 
-import KEPCO.SSD.device.dto.DeviceAiResponseDto;
-import KEPCO.SSD.device.dto.DeviceGetResponseDto;
-import KEPCO.SSD.device.dto.DeviceRegisterRequestDto;
-import KEPCO.SSD.device.dto.DeviceResponseDto;
+import KEPCO.SSD.device.dto.*;
 import KEPCO.SSD.device.entity.Device;
 import KEPCO.SSD.device.entity.SensorData;
 import KEPCO.SSD.device.repository.DeviceRepository;
@@ -57,13 +54,13 @@ public class DeviceService {
                 .collect(Collectors.toList());
     }
 
-    public DeviceResponseDto setPeriod(Long userId, String serialNumber, int day, int hour) {
+    public PeriodResponseDto setPeriod(Long userId, String serialNumber, int day, int hour) {
         Device device = deviceRepository.findByUserIdAndSerialNumber(userId, serialNumber)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
         device.setDay(day);
         device.setHour(hour);
         deviceRepository.save(device);
-        return new DeviceResponseDto("기간 설정 완료", serialNumber, device.getDay(), device.getHour());
+        return new PeriodResponseDto("기간 설정 완료", device.getDay(), device.getHour());
     }
 
     public DeviceAiResponseDto getOpenCloseTimes(Long userId, String serialNumber) {
