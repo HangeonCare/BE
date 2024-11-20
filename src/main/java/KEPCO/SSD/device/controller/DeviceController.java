@@ -1,9 +1,6 @@
 package KEPCO.SSD.device.controller;
 
-import KEPCO.SSD.device.dto.DeviceGetResponseDto;
-import KEPCO.SSD.device.dto.DeviceRegisterRequestDto;
-import KEPCO.SSD.device.dto.DeviceResponseDto;
-import KEPCO.SSD.device.dto.DeviceAiResponseDto;
+import KEPCO.SSD.device.dto.*;
 import KEPCO.SSD.device.service.DeviceService;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +32,12 @@ public class DeviceController {
     @GetMapping
     public List<DeviceGetResponseDto> getDevices(@PathVariable Long userId) {
         return deviceService.getDevices(userId);
+    }
+
+    // 감지 기간 설정
+    @PutMapping("/{serialNumber}/period")
+    public DeviceResponseDto setPeriod(@PathVariable Long userId, @PathVariable String serialNumber, @RequestBody PeriodRequestDto requestDto) {
+        return deviceService.setPeriod(userId, serialNumber, requestDto.getDay(), requestDto.getHour());
     }
 
     // ai

@@ -57,6 +57,15 @@ public class DeviceService {
                 .collect(Collectors.toList());
     }
 
+    public DeviceResponseDto setPeriod(Long userId, String serialNumber, int day, int hour) {
+        Device device = deviceRepository.findByUserIdAndSerialNumber(userId, serialNumber)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
+        device.setDay(day);
+        device.setHour(hour);
+        deviceRepository.save(device);
+        return new DeviceResponseDto("기간 설정 완료", serialNumber, device.getDay(), device.getHour());
+    }
+
     public DeviceAiResponseDto getOpenCloseTimes(Long userId, String serialNumber) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime sevenDaysAgo = now.minusDays(7);
