@@ -54,13 +54,18 @@ public class DeviceService {
                 .collect(Collectors.toList());
     }
 
-    public PeriodResponseDto setPeriod(Long userId, String serialNumber, int day, int hour) {
+    public void setPeriod(Long userId, String serialNumber, int day, int hour) {
         Device device = deviceRepository.findByUserIdAndSerialNumber(userId, serialNumber)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
         device.setDay(day);
         device.setHour(hour);
         deviceRepository.save(device);
-        return new PeriodResponseDto("기간 설정 완료", device.getDay(), device.getHour());
+    }
+
+    public PeriodResponseDto getPeriod(Long userId, String serialNumber) {
+        Device device = deviceRepository.findByUserIdAndSerialNumber(userId, serialNumber)
+                .orElseThrow(() -> new NoSuchElementException("해당 사용자의 기기가 존재하지 않습니다."));
+        return new PeriodResponseDto("기간 조회 완료", device.getDay(), device.getHour());
     }
 
     public DeviceAiResponseDto getOpenCloseTimes(Long userId, String serialNumber) {
