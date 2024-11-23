@@ -54,11 +54,11 @@ public class DeviceService {
                 .collect(Collectors.toList());
     }
 
-    public void setPeriod(Long userId, String serialNumber, int day, int hour) {
+    public void setPeriod(Long userId, String serialNumber, PeriodRequestDto requestDto) {
         Device device = deviceRepository.findByUserIdAndSerialNumber(userId, serialNumber)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 기기입니다."));
-        device.setDay(day);
-        device.setHour(hour);
+        device.setDay(requestDto.getDay());
+        device.setHour(requestDto.getHour());
         deviceRepository.save(device);
     }
 

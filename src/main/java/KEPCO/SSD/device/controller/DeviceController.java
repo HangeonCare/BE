@@ -36,8 +36,8 @@ public class DeviceController {
 
     // 감지 기간 설정
     @PutMapping("/{serialNumber}/period")
-    public void setPeriod(@PathVariable Long userId, @PathVariable String serialNumber, @RequestParam int day, @RequestParam int hour) {
-        deviceService.setPeriod(userId, serialNumber, day, hour);
+    public void setPeriod(@PathVariable Long userId, @PathVariable String serialNumber, @RequestBody PeriodRequestDto requestDto) {
+        deviceService.setPeriod(userId, serialNumber, requestDto);
     }
 
     // 감지 기간 조회
