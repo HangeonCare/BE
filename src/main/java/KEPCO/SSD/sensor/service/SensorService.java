@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class SensorService {
 
-    private static final long ALERT_COOLDOWN_PERIOD = 300_000;
+    private static final long ALERT_COOLDOWN_PERIOD = 180_000;
     private static final Logger logger = LoggerFactory.getLogger(SensorService.class);
     private final SmsService smsService;
     private final DeviceRepository deviceRepository;
