@@ -38,6 +38,7 @@ public class SensorService {
     private static final int[] EVENT_HOURS = {6, 12, 18, 24};
 
     private final Map<String, Boolean> isDoorClosedMap = new ConcurrentHashMap<>();
+    private final Map<String, Integer> lastSensorValueMap = new ConcurrentHashMap<>();
 
     public SensorService(SmsService smsService, DeviceRepository deviceRepository, UserRepository userRepository, SensorDataRepository sensorDataRepository) {
         this.smsService = smsService;
@@ -57,15 +58,32 @@ public class SensorService {
         LocalDateTime now = LocalDateTime.now();
         String serialNumber = device.getSerialNumber();
 
+        Integer previousValue = lastSensorValueMap.get(serialNumber);
+
         if (sensorRequestDto.getValue() == 0) {
+            // 1에서 0으로 바뀌었을 때만 action을 true로 설정
+            if (previousValue != null && previousValue == 1) {
+                lastDetectedTimeMap.put(serialNumber, System.currentTimeMillis());
+                lastAlertTimeMap.put(serialNumber, 0L);
+
+                device.setAction(true);
+                deviceRepository.save(device);
+            }
+
+            // 동일한 값이 두 번 이상 들어오면 action을 false로 설정
+            if (previousValue != null && previousValue == 0) {
+                device.setAction(false);
+                deviceRepository.save(device);
+            }
+
             isDoorClosedMap.put(serialNumber, true);
-
-            lastDetectedTimeMap.put(sensorRequestDto.getSerialNumber(), System.currentTimeMillis());
-            lastAlertTimeMap.put(serialNumber, 0L);
-
-            device.setAction(true);
-            deviceRepository.save(device);
         } else if (sensorRequestDto.getValue() == 1) {
+            // 동일한 값이 두 번 이상 들어오면 action을 false로 설정
+            if (previousValue != null && previousValue == 1) {
+                device.setAction(false);
+                deviceRepository.save(device);
+            }
+
             if (isDoorClosedMap.getOrDefault(serialNumber, false)) {
                 isDoorClosedMap.put(serialNumber, false);
                 int hourBucket = getClosestHourBucket(now.getHour());
@@ -77,7 +95,7 @@ public class SensorService {
                                     SensorData newSensorData = new SensorData();
                                     newSensorData.setUserId((long) userId);
                                     newSensorData.setSerialNumber(serialNumber);
-                                    newSensorData.setEventCounts(objectMapper.writeValueAsString(initializeHourCounts())); // Initialize counts
+                                    newSensorData.setEventCounts(objectMapper.writeValueAsString(initializeHourCounts()));
                                     newSensorData.setTime(todayStart);
                                     return newSensorData;
                                 } catch (IOException e) {
@@ -96,9 +114,9 @@ public class SensorService {
                     logger.error("IOException occurred while processing sensor data", e);
                 }
             }
-            int period = device.getPeriod();
 
-            if (isExceededPeriod(serialNumber, period)&& canSendAlert(serialNumber)) {
+            int period = device.getPeriod();
+            if (isExceededPeriod(serialNumber, period) && canSendAlert(serialNumber)) {
                 User user = userRepository.findById(userId).orElse(null);
                 if (user != null) {
                     String phoneNumber = user.getPhoneNumber();
@@ -112,14 +130,21 @@ public class SensorService {
                 }
             }
         }
+
+        lastSensorValueMap.put(serialNumber, sensorRequestDto.getValue());
     }
+
     private boolean isExceededPeriod(String serialNumber, int period) {
         Long lastDetectedTime = lastDetectedTimeMap.get(serialNumber);
         long currentTime = System.currentTimeMillis();
         return (currentTime - lastDetectedTime) > period * 10_000;
     }
+
     private boolean canSendAlert(String serialNumber) {
         Long lastAlertTime = lastAlertTimeMap.get(serialNumber);
+        if (lastAlertTime == null) {
+            lastAlertTime = 0L;
+        }
         long currentTime = System.currentTimeMillis();
         return lastAlertTime == 0 || (currentTime - lastAlertTime) > ALERT_COOLDOWN_PERIOD;
     }
