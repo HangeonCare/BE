@@ -34,10 +34,12 @@ public class SensorService {
 
     private final Map<String, Long> lastDetectedTimeMap = new ConcurrentHashMap<>();
     private final Map<String, Long> lastAlertTimeMap = new ConcurrentHashMap<>();
-    private static final int[] EVENT_HOURS = {6, 12, 18, 24};
-
     private final Map<String, Boolean> isDoorClosedMap = new ConcurrentHashMap<>();
     private final Map<String, Integer> lastSensorValueMap = new ConcurrentHashMap<>();
+    private final Map<String, Boolean> actMap = new ConcurrentHashMap<>(); // 기기별 act 관리
+
+    private static final int[] EVENT_HOURS = {6, 12, 18, 24};
+    private static final long ALERT_COOLDOWN_PERIOD = 180_000;
 
     public SensorService(SmsService smsService, DeviceRepository deviceRepository, UserRepository userRepository, SensorDataRepository sensorDataRepository) {
         this.smsService = smsService;
@@ -45,7 +47,6 @@ public class SensorService {
         this.userRepository = userRepository;
         this.sensorDataRepository = sensorDataRepository;
     }
-    private static final long ALERT_COOLDOWN_PERIOD = 180_000;
 
     public void processSensorData(int userId, SensorRequestDto sensorRequestDto) {
         logger.info("Received sensor data from user {}", userId);
@@ -60,29 +61,35 @@ public class SensorService {
 
         Integer previousValue = lastSensorValueMap.get(serialNumber);
 
+        // 센서 값이 0인 경우
         if (sensorRequestDto.getValue() == 0) {
             if (previousValue != null && previousValue == 1) {
                 lastDetectedTimeMap.put(serialNumber, System.currentTimeMillis());
                 lastAlertTimeMap.put(serialNumber, 0L);
 
+                actMap.put(serialNumber, true); // 기기의 act 상태 업데이트
                 device.setAction(true);
                 deviceRepository.save(device);
-            } else if(previousValue != null && previousValue == 0) {
-                device.setAction(false);
-                deviceRepository.save(device);
+            } else if (previousValue != null && previousValue == 0) {
+                actMap.put(serialNumber, false); // 움직임 없음
+            }else{
+                lastDetectedTimeMap.put(serialNumber, System.currentTimeMillis());
             }
-
             isDoorClosedMap.put(serialNumber, true);
-        } else if (sensorRequestDto.getValue() == 1) {
+        }
+        // 센서 값이 1인 경우
+        else if (sensorRequestDto.getValue() == 1) {
             if (previousValue != null && previousValue == 0) {
                 lastDetectedTimeMap.put(serialNumber, System.currentTimeMillis());
                 lastAlertTimeMap.put(serialNumber, 0L);
 
+                actMap.put(serialNumber, true); // 기기의 act 상태 업데이트
                 device.setAction(true);
                 deviceRepository.save(device);
-            } else if(previousValue != null && previousValue == 1) {
-                device.setAction(false);
-                deviceRepository.save(device);
+            } else if (previousValue != null && previousValue == 1) {
+                actMap.put(serialNumber, false); // 움직임 없음
+            }else{
+                lastDetectedTimeMap.put(serialNumber, System.currentTimeMillis());
             }
 
             if (isDoorClosedMap.getOrDefault(serialNumber, false)) {
@@ -110,14 +117,15 @@ public class SensorService {
                         sensorData.setEventCounts(objectMapper.writeValueAsString(hourCounts));
                         sensorDataRepository.save(sensorData);
                     }
-
                 } catch (IOException e) {
                     logger.error("IOException occurred while processing sensor data", e);
                 }
             }
         }
+
+        // 움직임 없을 시 알림 전송
         int period = device.getPeriod();
-        if (!device.isAction() && isExceededPeriod(serialNumber, period) && canSendAlert(serialNumber)) {
+        if (!actMap.getOrDefault(serialNumber, true) && isExceededPeriod(serialNumber, period) && canSendAlert(serialNumber)) {
             User user = userRepository.findById(userId).orElse(null);
             if (user != null) {
                 String phoneNumber = user.getPhoneNumber();
@@ -135,20 +143,17 @@ public class SensorService {
 
     private boolean isExceededPeriod(String serialNumber, int period) {
         Long lastDetectedTime = lastDetectedTimeMap.get(serialNumber);
-        if(lastDetectedTime == null)
-            lastDetectedTime = 0L;
+        if (lastDetectedTime == null) lastDetectedTime = 0L;
         long currentTime = System.currentTimeMillis();
-        return lastDetectedTime != null && (currentTime - lastDetectedTime) > period * 10_000;
+        return (currentTime - lastDetectedTime) > period * 10_000;
     }
 
     private boolean canSendAlert(String serialNumber) {
         Long lastAlertTime = lastAlertTimeMap.get(serialNumber);
-        if(lastAlertTime == null)
-            lastAlertTime = 0L;
+        if (lastAlertTime == null) lastAlertTime = 0L;
         long currentTime = System.currentTimeMillis();
         return lastAlertTime == 0 || (currentTime - lastAlertTime) > ALERT_COOLDOWN_PERIOD;
     }
-
 
     private int getClosestHourBucket(int currentHour) {
         if (currentHour < 6) return 0;
