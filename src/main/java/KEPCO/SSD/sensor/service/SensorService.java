@@ -46,7 +46,6 @@ public class SensorService {
         this.sensorDataRepository = sensorDataRepository;
     }
     private static final long ALERT_COOLDOWN_PERIOD = 180_000;
-    private static final long ACTION_FALSE_DURATION = 10_000;
 
     public void processSensorData(int userId, SensorRequestDto sensorRequestDto) {
         logger.info("Received sensor data from user {}", userId);
@@ -116,18 +115,18 @@ public class SensorService {
                     logger.error("IOException occurred while processing sensor data", e);
                 }
             }
-            int period = device.getPeriod();
-            if (!device.isAction() && isExceededPeriod(serialNumber, period) && canSendAlert(serialNumber)) {
-                User user = userRepository.findById(userId).orElse(null);
-                if (user != null) {
-                    String phoneNumber = user.getPhoneNumber();
-                    smsService.sendSms(phoneNumber, String.format("SSD [고독사 방지 시스템]\n%s(이)가 설정된 기간 동안 움직임을 감지하지 못했습니다.", serialNumber));
-                    lastAlertTimeMap.put(serialNumber, System.currentTimeMillis());
-                    device.setAction(false);
-                    deviceRepository.save(device);
-                } else {
-                    logger.warn("사용자를 찾을 수 없습니다. userId: {}", userId);
-                }
+        }
+        int period = device.getPeriod();
+        if (!device.isAction() && isExceededPeriod(serialNumber, period) && canSendAlert(serialNumber)) {
+            User user = userRepository.findById(userId).orElse(null);
+            if (user != null) {
+                String phoneNumber = user.getPhoneNumber();
+                smsService.sendSms(phoneNumber, String.format("SSD [고독사 방지 시스템]\n%s(이)가 설정된 기간 동안 움직임을 감지하지 못했습니다.", serialNumber));
+                lastAlertTimeMap.put(serialNumber, System.currentTimeMillis());
+                device.setAction(false);
+                deviceRepository.save(device);
+            } else {
+                logger.warn("사용자를 찾을 수 없습니다. userId: {}", userId);
             }
         }
 
@@ -144,6 +143,8 @@ public class SensorService {
 
     private boolean canSendAlert(String serialNumber) {
         Long lastAlertTime = lastAlertTimeMap.get(serialNumber);
+        if(lastAlertTime == null)
+            lastAlertTime = 0L;
         long currentTime = System.currentTimeMillis();
         return lastAlertTime == 0 || (currentTime - lastAlertTime) > ALERT_COOLDOWN_PERIOD;
     }
