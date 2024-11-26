@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class SensorService {
 
-    private static final long ALERT_COOLDOWN_PERIOD = 180_000;
     private static final Logger logger = LoggerFactory.getLogger(SensorService.class);
     private final SmsService smsService;
     private final DeviceRepository deviceRepository;
@@ -46,6 +45,8 @@ public class SensorService {
         this.userRepository = userRepository;
         this.sensorDataRepository = sensorDataRepository;
     }
+    private static final long ALERT_COOLDOWN_PERIOD = 180_000;
+    private static final long ACTION_FALSE_DURATION = 10_000;
 
     public void processSensorData(int userId, SensorRequestDto sensorRequestDto) {
         logger.info("Received sensor data from user {}", userId);
@@ -61,25 +62,26 @@ public class SensorService {
         Integer previousValue = lastSensorValueMap.get(serialNumber);
 
         if (sensorRequestDto.getValue() == 0) {
-            // 1에서 0으로 바뀌었을 때만 action을 true로 설정
             if (previousValue != null && previousValue == 1) {
                 lastDetectedTimeMap.put(serialNumber, System.currentTimeMillis());
                 lastAlertTimeMap.put(serialNumber, 0L);
 
                 device.setAction(true);
                 deviceRepository.save(device);
-            }
-
-            // 동일한 값이 두 번 이상 들어오면 action을 false로 설정
-            if (previousValue != null && previousValue == 0) {
+            } else if(previousValue != null && previousValue == 0) {
                 device.setAction(false);
                 deviceRepository.save(device);
             }
 
             isDoorClosedMap.put(serialNumber, true);
         } else if (sensorRequestDto.getValue() == 1) {
-            // 동일한 값이 두 번 이상 들어오면 action을 false로 설정
-            if (previousValue != null && previousValue == 1) {
+            if (previousValue != null && previousValue == 0) {
+                lastDetectedTimeMap.put(serialNumber, System.currentTimeMillis());
+                lastAlertTimeMap.put(serialNumber, 0L);
+
+                device.setAction(true);
+                deviceRepository.save(device);
+            } else if(previousValue != null && previousValue == 1) {
                 device.setAction(false);
                 deviceRepository.save(device);
             }
@@ -114,15 +116,13 @@ public class SensorService {
                     logger.error("IOException occurred while processing sensor data", e);
                 }
             }
-
             int period = device.getPeriod();
-            if (isExceededPeriod(serialNumber, period) && canSendAlert(serialNumber)) {
+            if (!device.isAction() && isExceededPeriod(serialNumber, period) && canSendAlert(serialNumber)) {
                 User user = userRepository.findById(userId).orElse(null);
                 if (user != null) {
                     String phoneNumber = user.getPhoneNumber();
                     smsService.sendSms(phoneNumber, String.format("SSD [고독사 방지 시스템]\n%s(이)가 설정된 기간 동안 움직임을 감지하지 못했습니다.", serialNumber));
                     lastAlertTimeMap.put(serialNumber, System.currentTimeMillis());
-
                     device.setAction(false);
                     deviceRepository.save(device);
                 } else {
@@ -136,18 +136,18 @@ public class SensorService {
 
     private boolean isExceededPeriod(String serialNumber, int period) {
         Long lastDetectedTime = lastDetectedTimeMap.get(serialNumber);
+        if(lastDetectedTime == null)
+            lastDetectedTime = 0L;
         long currentTime = System.currentTimeMillis();
-        return (currentTime - lastDetectedTime) > period * 10_000;
+        return lastDetectedTime != null && (currentTime - lastDetectedTime) > period * 10_000;
     }
 
     private boolean canSendAlert(String serialNumber) {
         Long lastAlertTime = lastAlertTimeMap.get(serialNumber);
-        if (lastAlertTime == null) {
-            lastAlertTime = 0L;
-        }
         long currentTime = System.currentTimeMillis();
         return lastAlertTime == 0 || (currentTime - lastAlertTime) > ALERT_COOLDOWN_PERIOD;
     }
+
 
     private int getClosestHourBucket(int currentHour) {
         if (currentHour < 6) return 0;
